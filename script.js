@@ -1,4 +1,5 @@
-export const GOOGLE_API_KEY = 'AIzaSyCtLvx6ILJlAFYllUPp43kUl5QHSrZJsZ0';
+const GOOGLE_API_KEY = 'AIzaSyBwZz_6igxGgJEJyk9N_VVGXOV9tKSIHpQ';
+
 const FONT_STYLES = [
     {
         family: "'Roboto', sans-serif",
@@ -88,6 +89,7 @@ async function generateReports() {
         return;
     }
 
+    // Clear previous content and show loading
     storiesContainer.innerHTML = '';
     loading.classList.remove('hidden');
     loading.textContent = 'Generating reports...';
@@ -97,9 +99,11 @@ async function generateReports() {
             try {
                 loading.textContent = `Generating report ${i + 1} of ${reportCount}...`;
 
+                // Randomly select font style and report type
                 const fontStyle = FONT_STYLES[Math.floor(Math.random() * FONT_STYLES.length)];
                 const reportType = REPORT_TYPES[Math.floor(Math.random() * REPORT_TYPES.length)];
 
+                // Fetch image with error handling
                 let imageData;
                 try {
                     imageData = await getRandomImageWithTitle();
@@ -214,18 +218,7 @@ async function generateReports() {
 
 function generateSoftBackgroundColor() {
     const pastelColors = [
-        // Blues
-        '#F0F4F8', '#E6F2FF', '#EDF2FB', '#E2ECF7', '#D4E5F9',
-        // Pinks/Purples
-        '#F3E5F5', '#FDE2E4', '#FAE0E4', '#F8E4FF', '#F1E6FF',
-        // Greens
-        '#E8F5E9', '#E2F0CB', '#DDEAD1', '#E9F5DB', '#F1F8E9',
-        // Yellows/Oranges
-        '#FFF3E0', '#FFF1E6', '#FAF3DD', '#FFF4D9', '#FFF8E7',
-        // Mint/Aqua
-        '#E0F7F6', '#E3FDFD', '#DEF7F7', '#E0FFFF', '#F0FFFF',
-        // Beige/Cream
-        '#F8F6F0', '#F7F3F0', '#FAF6F1', '#F9F7F7', '#F8F9FA'
+        '#F0F4F8', '#E6F2FF', '#F3E5F5', '#E8F5E9', '#FFF3E0'
     ];
     return pastelColors[Math.floor(Math.random() * pastelColors.length)];
 }
