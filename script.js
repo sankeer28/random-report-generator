@@ -1,6 +1,4 @@
-// API Keys (Note: In a real application, NEVER expose API keys in client-side code)
-const GOOGLE_API_KEY = '{{GOOGLE_API_KEY}}';
-
+export const GOOGLE_API_KEY = 'AIzaSyCtLvx6ILJlAFYllUPp43kUl5QHSrZJsZ0';
 const FONT_STYLES = [
     {
         family: "'Roboto', sans-serif",
@@ -90,7 +88,6 @@ async function generateReports() {
         return;
     }
 
-    // Clear previous content and show loading
     storiesContainer.innerHTML = '';
     loading.classList.remove('hidden');
     loading.textContent = 'Generating reports...';
@@ -100,11 +97,9 @@ async function generateReports() {
             try {
                 loading.textContent = `Generating report ${i + 1} of ${reportCount}...`;
 
-                // Randomly select font style and report type
                 const fontStyle = FONT_STYLES[Math.floor(Math.random() * FONT_STYLES.length)];
                 const reportType = REPORT_TYPES[Math.floor(Math.random() * REPORT_TYPES.length)];
 
-                // Fetch image with error handling
                 let imageData;
                 try {
                     imageData = await getRandomImageWithTitle();
