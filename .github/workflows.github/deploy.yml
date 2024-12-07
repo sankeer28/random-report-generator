@@ -1,0 +1,31 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Google API Key from Secrets
+      - name: Set up Google API Key
+        run: echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" >> $GITHUB_ENV
+
+      # Step 3: Replace the placeholder with the actual Google API Key
+      - name: Replace placeholder with Google API Key
+        run: |
+          sed -i 's/{{GOOGLE_API_KEY}}/${{ secrets.GOOGLE_API_KEY }}/g' path/to/your/script.js
+
+      # Step 4: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          deploy_branch: gh-pages  # The branch to deploy the site to
+          folder: dist  # Folder containing your built files (adjust as needed)
