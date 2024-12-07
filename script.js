@@ -1,5 +1,5 @@
 // API Keys (Note: In a real application, NEVER expose API keys in client-side code)
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_API_KEY = '{{GOOGLE_API_KEY}}';
 
 const FONT_STYLES = [
     {
