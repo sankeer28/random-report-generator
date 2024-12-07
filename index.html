@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Report Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Merriweather:ital,wght@0,300;0,700;1,400&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1a1a1a; /* Dark background */
+            line-height: 1.6;
+            color: #ecf0f1; /* Light text color */
+        }
+        
+        /* Container Styles */
+        .container {
+            background-color: #2c2c2c; /* Dark container background */
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            margin-top: 2rem;
+        }
+        
+        /* Header Styles */
+        h1 {
+            color: #ffffff !important; /* Force bright white */
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        
+        
+        /* Input Section Styles */
+        .input-section {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        #reportCount {
+            width: 180px;
+            padding: 0.75rem 1rem;
+            border: 2px solid #3e3e3e; /* Darker border */
+            background-color: #1a1a1a; /* Match body background */
+            color: #ecf0f1; /* Light text */
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+            outline: none;
+        }
+        
+        #reportCount:focus {
+            border-color: #3498db; /* Accent color */
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        /* Button Styles */
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: #3498db; /* Accent color */
+            color: #ecf0f1; /* Light text */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #2980b9; /* Darker accent */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        /* Report Container Styles */
+        .report-container {
+            margin-bottom: 2rem;
+            page-break-inside: avoid;
+            border: 1px solid #3e3e3e; /* Darker border */
+            background-color: #2c2c2c; /* Match container background */
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        
+        .report-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+        }
+        
+        /* Loading State Styles */
+        .loading {
+            text-align: center;
+            font-style: italic;
+            color: #bdc3c7; /* Subtle text color */
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+            
+            .input-section {
+                flex-direction: column;
+            }
+            
+            #reportCount {
+                width: 100%;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        .github-button {
+            background-color: #24292e; /* GitHub's dark color */
+            color: #ffffff; /* White text */
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .github-button:hover {
+            background-color: #333333; /* Slightly lighter on hover */
+        }
+        
+        
+        .github-button:hover {
+            background-color: #333333; /* Slightly lighter on hover */
+        }
+        
+        .github-button-container {
+            display: flex;
+            justify-content: center; /* Centers the button horizontally */
+            align-items: center;    /* Ensures proper vertical alignment */
+            margin: 1rem 0;         /* Equal spacing above and below */
+        }
+        
+        
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: #2C3E50; text-align: center;">Random Report Generator</h1>
+        <div class="github-button-container">
+            <button class="github-button" onclick="window.open('https://github.com/sankeer28/random-report-generator', '_blank')">GitHub</button>
+        </div>
+        
+        <div class="input-section">
+            <input type="number" id="reportCount" min="1" max="20" value="5" placeholder="Number of reports">
+            <button onclick="generateReports()">Generate Reports</button>
+        </div>
+        <div id="loading" class="loading hidden">Generating reports...</div>
+        <div id="stories-container"></div>
+    </div>
+     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
