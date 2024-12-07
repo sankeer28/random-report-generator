@@ -1,4 +1,4 @@
-const GOOGLE_API_KEY = 'AIzaSyBwZz_6igxGgJEJyk9N_VVGXOV9tKSIHpQ';
+const GOOGLE_API_KEY = 'AIzaSyBwZz_6igxGgJEJyk9N_VVGXOV9tKSIHpQ'; // not my api key lol
 
 const FONT_STYLES = [
     {
@@ -89,7 +89,6 @@ async function generateReports() {
         return;
     }
 
-    // Clear previous content and show loading
     storiesContainer.innerHTML = '';
     loading.classList.remove('hidden');
     loading.textContent = 'Generating reports...';
@@ -98,12 +97,8 @@ async function generateReports() {
         for (let i = 0; i < reportCount; i++) {
             try {
                 loading.textContent = `Generating report ${i + 1} of ${reportCount}...`;
-
-                // Randomly select font style and report type
                 const fontStyle = FONT_STYLES[Math.floor(Math.random() * FONT_STYLES.length)];
                 const reportType = REPORT_TYPES[Math.floor(Math.random() * REPORT_TYPES.length)];
-
-                // Fetch image with error handling
                 let imageData;
                 try {
                     imageData = await getRandomImageWithTitle();
