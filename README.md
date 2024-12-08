@@ -1,6 +1,5 @@
 # Random Report Generator 📄🖼️
 
-## Overview
 
 The Random Report Generator is an innovative web application that dynamically creates professional, visually-engaging PDF reports using AI-powered image analysis and creative text generation. With just a few clicks, users can generate multiple unique reports, each accompanied by a randomly selected image and an intelligently crafted narrative.
 
