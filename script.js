@@ -1,34 +1,36 @@
 const GOOGLE_API_KEY = 'AIzaSyBwZz_6igxGgJEJyk9N_VVGXOV9tKSIHpQ'; // not my api key lol
 
+document.addEventListener('DOMContentLoaded', () => {
+    const fontLinks = [
+        'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap'
+    ];
+    fontLinks.forEach(link => {
+        const fontLink = document.createElement('link');
+        fontLink.href = link;
+        fontLink.rel = 'stylesheet';
+        document.head.appendChild(fontLink);
+    });
+});
+
 const FONT_STYLES = [
     {
-        family: "'Roboto', sans-serif",
+        family: "sans-serif",
         headingColor: "#2C3E50",
         textColor: "#34495E",
         accentColor: "#3498DB",
         styles: {
-            heading: { fontWeight: "bold", textTransform: "uppercase" },
-            paragraph: { lineHeight: "1.6", fontWeight: "normal" }
+            heading: { fontWeight: "bold" },
+            paragraph: { lineHeight: 1.6 }
         }
     },
     {
-        family: "'Merriweather', serif",
+        family: "serif",
         headingColor: "#1A5F7A",
         textColor: "#2C3E50",
         accentColor: "#16A085",
         styles: {
-            heading: { fontStyle: "italic", fontWeight: "bold" },
-            paragraph: { lineHeight: "1.7", fontWeight: "300" }
-        }
-    },
-    {
-        family: "'Open Sans', sans-serif",
-        headingColor: "#8E44AD",
-        textColor: "#2C3E50",
-        accentColor: "#E74C3C",
-        styles: {
-            heading: { textDecoration: "underline", fontWeight: "600" },
-            paragraph: { lineHeight: "1.5", fontWeight: "400" }
+            heading: { fontWeight: "bold" },
+            paragraph: { lineHeight: 1.7 }
         }
     }
 ];
@@ -78,12 +80,14 @@ function formatTechnicalText(text) {
         .replace(/\[(.*?)\]/g, '<em>[$1]</em>');
 }
 
+
+
+
 async function generateReports() {
     const storiesContainer = document.getElementById('stories-container');
     const loading = document.getElementById('loading');
     const reportCount = parseInt(document.getElementById('reportCount').value) || 5;
     
-    // Validate report count
     if (reportCount < 1 || reportCount > 20) {
         alert('Please enter a number between 1 and 20');
         return;
@@ -94,11 +98,13 @@ async function generateReports() {
     loading.textContent = 'Generating reports...';
 
     try {
+        const pdfPromises = [];
+        const pdfFiles = [];
+
         for (let i = 0; i < reportCount; i++) {
             try {
                 loading.textContent = `Generating report ${i + 1} of ${reportCount}...`;
                 const fontStyle = FONT_STYLES[Math.floor(Math.random() * FONT_STYLES.length)];
-                const reportType = REPORT_TYPES[Math.floor(Math.random() * REPORT_TYPES.length)];
                 let imageData;
                 try {
                     imageData = await getRandomImageWithTitle();
@@ -118,89 +124,96 @@ async function generateReports() {
 
                 const report = await generateReportWithGeminiVision(imageBase64, imageData.title);
                 
-                const reportPage = document.createElement('div');
-                reportPage.className = 'report-page';
-                reportPage.style.cssText = `
-                    width: 210mm;
-                    height: 297mm;
-                    margin: 0 auto;
-                    padding: 20mm;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    font-family: ${fontStyle.family};
-                    background-color: ${generateSoftBackgroundColor()};
-                    page-break-after: always;
-                    position: relative;
-                    overflow: hidden;
-                `;
-                
-                reportPage.innerHTML = `
-                    <h2 style="
-                        text-align: center; 
-                        margin-bottom: 20px; 
-                        width: 100%; 
-                        font-size: 24px;
-                        color: ${fontStyle.headingColor};
-                        font-weight: ${fontStyle.styles.heading.fontWeight};
-                        font-style: ${fontStyle.styles.heading.fontStyle || 'normal'};
-                        text-decoration: ${fontStyle.styles.heading.textDecoration || 'none'};
-                        text-transform: ${fontStyle.styles.heading.textTransform || 'none'};
-                    ">
-                        ${imageData.title}
-                    </h2>
-                    <img src="${imageData.url}" style="max-width: 170mm; max-height: 200mm; object-fit: contain; margin-bottom: 20px; width: 100%; border: 3px solid ${fontStyle.accentColor};" alt="${imageData.title}">
-                    <div style="
-                        text-align: justify; 
-                        line-height: ${fontStyle.styles.paragraph.lineHeight}; 
-                        width: 100%; 
-                        font-size: 12px;
-                        color: ${fontStyle.textColor};
-                        font-weight: ${fontStyle.styles.paragraph.fontWeight};
-                    ">
-                        ${reportType.template(imageData.title, report)}
-                    </div>
-                `;
-                
-                storiesContainer.appendChild(reportPage.cloneNode(true));
+                const pdfPromise = new Promise(async (resolve) => {
+                    const pdf = new jspdf.jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
 
-                loading.textContent = `Generating PDF for report ${i + 1} of ${reportCount}...`;
+                    const pageWidth = pdf.internal.pageSize.width;
+                    const pageHeight = pdf.internal.pageSize.height;
+                    const margin = 20;
+                    const backgroundColor = generateSoftBackgroundColor();
+                    pdf.setFillColor(backgroundColor[0], backgroundColor[1], backgroundColor[2]);
+                    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+                    try {
+                        pdf.addImage(imageBase64, 'JPEG', margin, margin, pageWidth - 2*margin, (pageWidth - 2*margin) * 9/16);
+                    } catch (imgError) {
+                        console.error('Image addition error:', imgError);
+                    }
+                    pdf.setFont("helvetica");
+                    pdf.setFontSize(18);
+                    pdf.setTextColor(0, 0, 0);  // Black color
+                    pdf.text(imageData.title, pageWidth / 2, margin + (pageWidth - 2*margin) * 9/16 + 15, {
+                        align: 'center'
+                    });
 
-                await html2pdf()
-                    .set({
-                        margin: [0, 0, 0, 0],
-                        filename: `${reportType.name.toLowerCase().replace(/\s+/g, '_')}_${i + 1}_${imageData.title.replace(/[^a-z0-9]/gi, '_')}.pdf`,
-                        image: { 
-                            type: 'jpeg', 
-                            quality: 0.98 
-                        },
-                        html2canvas: { 
-                            scale: 2,
-                            useCORS: true,
-                            logging: false,
-                            letterRendering: true,
-                            allowTaint: true
-                        },
-                        jsPDF: { 
-                            unit: 'mm', 
-                            format: 'a4', 
-                            orientation: 'portrait' 
-                        },
-                        pagebreak: {
-                            mode: ['css', 'legacy']
+                    // Report text
+                    pdf.setFontSize(11);
+                    pdf.setTextColor(50, 50, 50);  // Dark gray
+                    
+                    // Split text into lines
+                    const paragraphs = report.split('\n').filter(p => p.trim() !== '');
+                    let yPosition = margin + (pageWidth - 2*margin) * 9/16 + 25;
+                    
+                    paragraphs.forEach((paragraph, index) => {
+                        const splitText = pdf.splitTextToSize(paragraph, pageWidth - 2*margin);
+                        
+                        // Add some spacing between paragraphs
+                        if (index > 0) {
+                            yPosition += 5;
                         }
-                    })
-                    .from(reportPage)
-                    .save();
+                        
+                        pdf.text(splitText, margin, yPosition, {
+                            maxWidth: pageWidth - 2*margin,
+                            align: 'justify'
+                        });
+                        
+                        // Update y position
+                        yPosition += splitText.length * 5;
+                    });
 
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                    // Convert PDF to Blob
+                    const pdfBlob = pdf.output('blob');
+                    const pdfFile = new File([pdfBlob], `report_${i + 1}_${imageData.title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+                    
+                    resolve(pdfFile);
+                });
+
+                pdfPromises.push(pdfPromise);
+
+                // Optional: Create a preview image (hidden)
+                const previewImg = document.createElement('img');
+                previewImg.src = imageData.url;
+                previewImg.style.display = 'none'; // Hide the image
+                storiesContainer.appendChild(previewImg);
 
             } catch (singleReportError) {
                 console.error(`Error generating report ${i + 1}:`, singleReportError);
                 continue;
             }
         }
+
+        // Wait for all PDFs to be generated
+        const generatedPDFs = await Promise.all(pdfPromises);
+
+        // Create a ZIP file
+        const zip = new JSZip();
+        generatedPDFs.forEach(pdfFile => {
+            zip.file(pdfFile.name, pdfFile);
+        });
+
+        // Generate the ZIP file
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+        // Trigger download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(zipBlob);
+        downloadLink.download = `reports_bundle_${new Date().toISOString().replace(/[:.]/g, '_')}.zip`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
 
     } catch (error) {
         console.error('Comprehensive Error:', error);
@@ -211,12 +224,43 @@ async function generateReports() {
 }
 
 
+
 function generateSoftBackgroundColor() {
     const pastelColors = [
-        '#F0F4F8', '#E6F2FF', '#F3E5F5', '#E8F5E9', '#FFF3E0'
+        [240, 244, 248], // Soft Blue-Grey
+        [230, 242, 255], // Light Sky Blue
+        [243, 229, 245], // Pastel Lavender
+        [232, 245, 233], // Mint Green
+        [255, 243, 224], // Light Peach
+        [255, 239, 230], // Pale Coral
+        [240, 234, 245], // Pale Lilac
+        [250, 240, 230], // Blush Beige
+        [255, 250, 240], // Ivory
+        [245, 245, 240], // Soft Vanilla
+        [235, 245, 255], // Powder Blue
+        [240, 250, 240], // Pale Mint
+        [255, 244, 245], // Soft Pink
+        [248, 239, 239], // Rose Dust
+        [242, 243, 245], // Cloud Grey
+        [240, 245, 255], // Baby Blue
+        [248, 244, 252], // Lilac Mist
+        [254, 247, 234], // Soft Sand
+        [249, 250, 240], // Soft Lemon
+        [245, 250, 245], // Light Seafoam
+        [255, 255, 255], // Pure White
+        [250, 250, 250], // Off-White
+        [245, 245, 255], // Soft White-Blue
+        [255, 245, 250], // Pale Pinkish White
+        [248, 248, 255], // Lavender White
+        [255, 253, 250], // Warm Ivory
+        [252, 255, 250], // Pale Green White
+        [255, 250, 255], // Orchid White
+        [255, 255, 245], // Light Cream
+        [255, 255, 230]  // Lemon White
     ];
     return pastelColors[Math.floor(Math.random() * pastelColors.length)];
 }
+
 
 
 async function getRandomImageWithTitle() {
