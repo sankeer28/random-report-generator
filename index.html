@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Report Generator</title>
+    <title>Random Report Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Merriweather:ital,wght@0,300;0,700;1,400&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         * {
@@ -17,23 +17,23 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
-            background-color: #1a1a1a; /* Dark background */
+            background-color: #1a1a1a; 
             line-height: 1.6;
-            color: #ecf0f1; /* Light text color */
+            color: #ecf0f1; 
         }
         
-        /* Container Styles */
+
         .container {
-            background-color: #2c2c2c; /* Dark container background */
+            background-color: #2c2c2c; 
             padding: 2.5rem;
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             margin-top: 2rem;
         }
         
-        /* Header Styles */
+
         h1 {
-            color: #ffffff !important; /* Force bright white */
+            color: #ffffff !important; 
             text-align: center;
             margin-bottom: 2rem;
             font-size: 2.5rem;
@@ -43,7 +43,7 @@
         
         
         
-        /* Input Section Styles */
+ 
         .input-section {
             display: flex;
             gap: 1rem;
@@ -55,9 +55,9 @@
         #reportCount {
             width: 180px;
             padding: 0.75rem 1rem;
-            border: 2px solid #3e3e3e; /* Darker border */
-            background-color: #1a1a1a; /* Match body background */
-            color: #ecf0f1; /* Light text */
+            border: 2px solid #3e3e3e;
+            background-color: #1a1a1a; 
+            color: #ecf0f1; 
             border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.3s ease, background-color 0.3s ease;
@@ -65,15 +65,14 @@
         }
         
         #reportCount:focus {
-            border-color: #3498db; /* Accent color */
+            border-color: #3498db; 
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
         
-        /* Button Styles */
         button {
             padding: 0.75rem 1.5rem;
-            background-color: #3498db; /* Accent color */
-            color: #ecf0f1; /* Light text */
+            background-color: #3498db; 
+            color: #ecf0f1; 
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -83,7 +82,7 @@
         }
         
         button:hover {
-            background-color: #2980b9; /* Darker accent */
+            background-color: #2980b9; 
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
@@ -92,12 +91,12 @@
             transform: translateY(0);
         }
         
-        /* Report Container Styles */
+
         .report-container {
             margin-bottom: 2rem;
             page-break-inside: avoid;
-            border: 1px solid #3e3e3e; /* Darker border */
-            background-color: #2c2c2c; /* Match container background */
+            border: 1px solid #3e3e3e; 
+            background-color: #2c2c2c; 
             padding: 1.5rem;
             border-radius: 8px;
         }
@@ -109,11 +108,11 @@
             border-radius: 6px;
         }
         
-        /* Loading State Styles */
+
         .loading {
             text-align: center;
             font-style: italic;
-            color: #bdc3c7; /* Subtle text color */
+            color: #bdc3c7; 
             padding: 1rem;
             font-size: 1.1rem;
         }
@@ -122,7 +121,7 @@
             display: none;
         }
         
-        /* Responsive Design */
+
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
@@ -149,8 +148,8 @@
             }
         }
         .github-button {
-            background-color: #24292e; /* GitHub's dark color */
-            color: #ffffff; /* White text */
+            background-color: #24292e; 
+            color: #ffffff; 
             padding: 0.75rem 1.5rem;
             border: none;
             border-radius: 8px;
@@ -161,20 +160,22 @@
         }
         
         .github-button:hover {
-            background-color: #333333; /* Slightly lighter on hover */
+            background-color: #333333; 
         }
         
         
         .github-button:hover {
-            background-color: #333333; /* Slightly lighter on hover */
+            background-color: #333333;
         }
         
         .github-button-container {
             display: flex;
-            justify-content: center; /* Centers the button horizontally */
-            align-items: center;    /* Ensures proper vertical alignment */
-            margin: 1rem 0;         /* Equal spacing above and below */
+            justify-content: center; 
+            align-items: center;    
+            margin: 1rem 0;        
         }
+
+        
         
         
         
@@ -192,11 +193,11 @@
             <button onclick="generateReports()">Generate Reports</button>
         </div>
         <div id="loading" class="loading hidden">Generating reports...</div>
-        <div id="stories-container"></div>
+        <div id="stories-container" style.display = 'none'></div>
     </div>
-     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/plugins/autoTable.min.js"></script>
 </body>
 </html>
