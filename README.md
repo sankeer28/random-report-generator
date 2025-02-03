@@ -7,7 +7,8 @@ The Random Report Generator is an innovative web application that dynamically cr
 [report_5_Manhattan_Bridge_View.pdf](https://github.com/user-attachments/files/18050564/report_5_Manhattan_Bridge_View.pdf)
 ![image](https://github.com/user-attachments/assets/ab743b44-794f-4e97-aa47-5a4fde4a2898)
 
-
+## NEEDS GEMINI API
+- Get your API here https://aistudio.google.com
 ## 🌟 Key Features
 
 - **Automatic Report Generation**: Create multiple reports in a single batch
