@@ -1,4 +1,26 @@
-const GOOGLE_API_KEY = 'AIzaSyBwZz_6igxGgJEJyk9N_VVGXOV9tKSIHpQ'; // not my api key lol
+// Remove the hardcoded API key line
+// Instead, add these functions at the top
+
+function getStoredApiKey() {
+    return localStorage.getItem('geminiApiKey');
+}
+
+function setApiKey(key) {
+    localStorage.setItem('geminiApiKey', key);
+}
+
+function requestApiKey() {
+    const key = prompt("Please enter your Gemini API key:");
+    if (key) {
+        setApiKey(key);
+        return key;
+    }
+    return null;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const fontLinks = [
@@ -84,6 +106,15 @@ function formatTechnicalText(text) {
 
 
 async function generateReports() {
+    let apiKey = getStoredApiKey();
+    if (!apiKey) {
+        apiKey = requestApiKey();
+        if (!apiKey) {
+            alert('API key is required to generate reports');
+            return;
+        }
+    }
+
     const storiesContainer = document.getElementById('stories-container');
     const loading = document.getElementById('loading');
     const reportCount = parseInt(document.getElementById('reportCount').value) || 5;
@@ -99,30 +130,26 @@ async function generateReports() {
 
     try {
         const pdfPromises = [];
-        const pdfFiles = [];
+        const seenImages = new Set(); // Track seen images
 
         for (let i = 0; i < reportCount; i++) {
             try {
                 loading.textContent = `Generating report ${i + 1} of ${reportCount}...`;
                 const fontStyle = FONT_STYLES[Math.floor(Math.random() * FONT_STYLES.length)];
                 let imageData;
-                try {
-                    imageData = await getRandomImageWithTitle();
-                } catch (imageError) {
-                    console.error('Image fetch error:', imageError);
-                    imageData = {
-                        url: 'https://via.placeholder.com/1920x1080.png?text=Report+Image',
-                        title: 'Placeholder Image'
-                    };
-                }
+                let attempts = 0;
                 
+                // Keep trying until we get a unique image or max attempts reached
+                do {
+                    imageData = await getRandomImageWithTitle(apiKey, attempts);
+                    attempts++;
+                } while (seenImages.has(imageData.base64) && attempts < 3);
+
+                seenImages.add(imageData.base64); // Track this image
+
                 loading.textContent = `Analyzing image for report ${i + 1} of ${reportCount}...`;
                 
-                const imageResponse = await fetch(imageData.url);
-                const imageBlob = await imageResponse.blob();
-                const imageBase64 = await blobToBase64(imageBlob);
-
-                const report = await generateReportWithGeminiVision(imageBase64, imageData.title);
+                const report = await generateReportWithGeminiVision(imageData.base64, imageData.title, apiKey);
                 
                 const pdfPromise = new Promise(async (resolve) => {
                     const pdf = new jspdf.jsPDF({
@@ -138,7 +165,7 @@ async function generateReports() {
                     pdf.setFillColor(backgroundColor[0], backgroundColor[1], backgroundColor[2]);
                     pdf.rect(0, 0, pageWidth, pageHeight, 'F');
                     try {
-                        pdf.addImage(imageBase64, 'JPEG', margin, margin, pageWidth - 2*margin, (pageWidth - 2*margin) * 9/16);
+                        pdf.addImage(imageData.base64, 'JPEG', margin, margin, pageWidth - 2*margin, (pageWidth - 2*margin) * 9/16);
                     } catch (imgError) {
                         console.error('Image addition error:', imgError);
                     }
@@ -263,19 +290,37 @@ function generateSoftBackgroundColor() {
 
 
 
-async function getRandomImageWithTitle() {
+async function getRandomImageWithTitle(apiKey, attempt = 0) {
     try {
-        const imageUrl = 'https://picsum.photos/1920/1080';
-        const response = await fetch(imageUrl);
+        await sleep(attempt * 1000);
+
+        // Generate random seed for Picsum
+        const seed = Math.floor(Math.random() * 1000);
+        const width = 1920;
+        const height = 1080;
         
-        if (!response.ok) {
-            throw new Error('Failed to fetch random image');
-        }
+        const loadImage = () => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    const base64 = canvas.toDataURL('image/jpeg');
+                    resolve({ image: img, base64: base64 });
+                };
+                img.onerror = () => reject(new Error('Failed to load image'));
+                // Use Picsum Photos with seed for consistent image on retries but different between reports
+                img.src = `https://picsum.photos/seed/${seed}/${width}/${height}`;
+            });
+        };
 
-        const imageBlob = await response.clone().blob();
-        const imageBase64 = await blobToBase64(imageBlob);
+        const { image, base64 } = await loadImage();
 
-        const titleResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`, {
+        const titleResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -287,7 +332,7 @@ async function getRandomImageWithTitle() {
                         { 
                             inlineData: {
                                 mimeType: 'image/jpeg',
-                                data: imageBase64.split(',')[1]
+                                data: base64.split(',')[1]
                             }
                         }
                     ]
@@ -300,6 +345,11 @@ async function getRandomImageWithTitle() {
             })
         });
 
+        if (titleResponse.status === 403 || titleResponse.status === 429) {
+            localStorage.removeItem('geminiApiKey');
+            throw new Error('Invalid or expired API key');
+        }
+
         const titleData = await titleResponse.json();
         let title = titleData.candidates[0]?.content?.parts[0]?.text?.trim() || 'Untitled Image';
         
@@ -311,23 +361,42 @@ async function getRandomImageWithTitle() {
             .trim();
 
         return {
-            url: response.url,
-            title: title
+            url: image.src,
+            title: title,
+            base64: base64
         };
     } catch (error) {
         console.error('Random Image API error:', error);
+        if (attempt < 3) {
+            return getRandomImageWithTitle(apiKey, attempt + 1);
+        }
+        // Update fallback to use Picsum as well
         return {
-            url: 'https://via.placeholder.com/1920x1080.png?text=Report+Image',
-            title: 'Unexpected Journey'
+            url: `https://picsum.photos/seed/fallback/${width}/${height}`,
+            title: 'Unexpected Journey',
+            base64: await (async () => {
+                const fallbackImg = new Image();
+                fallbackImg.crossOrigin = 'anonymous';
+                await new Promise(resolve => {
+                    fallbackImg.onload = resolve;
+                    fallbackImg.src = `https://picsum.photos/seed/fallback/${width}/${height}`;
+                });
+                const canvas = document.createElement('canvas');
+                canvas.width = fallbackImg.width;
+                canvas.height = fallbackImg.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(fallbackImg, 0, 0);
+                return canvas.toDataURL('image/jpeg');
+            })()
         };
     }
 }
 
 
 
-async function generateReportWithGeminiVision(imageBase64, imageTitle) {
+async function generateReportWithGeminiVision(imageBase64, imageTitle, apiKey) {
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -351,6 +420,11 @@ async function generateReportWithGeminiVision(imageBase64, imageTitle) {
                 }
             })
         });
+
+        if (response.status === 403 || response.status === 429) {
+            localStorage.removeItem('geminiApiKey');
+            throw new Error('Invalid or expired API key');
+        }
 
         const responseData = await response.json();
 
